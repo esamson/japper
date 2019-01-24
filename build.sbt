@@ -23,10 +23,13 @@ ThisBuild / scmInfo := Some(
   )
 )
 
+ThisBuild / dynverSonatypeSnapshots := true
+
 // Root project
 name := "japper"
 disablePlugins(AssemblyPlugin)
 disablePlugins(HeaderPlugin)
+publishArtifact := false
 
 lazy val app = japperProject("app")
   .dependsOn(core)
