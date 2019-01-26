@@ -51,14 +51,51 @@ jobs:
             echo $SECRING_ASC | base64 --decode > ~/.sbt/gpg/secring.asc
             cat /dev/null | sbt publishSigned
 
+  release:
+    docker:
+      - image: circleci/openjdk:8-jdk
+
+    working_directory: ~/japper
+
+    environment:
+      TERM: dumb
+
+    steps:
+      - checkout
+      - attach_workspace:
+          at: ~/japper
+      - restore_cache:
+          keys:
+            - sbt-deps-{{ checksum "project/Dependencies.scala" }}-{{ checksum "project/plugins.sbt" }}-{{ checksum "project/build.properties" }}
+            - sbt-deps-
+      - run:
+          name: Publish
+          command: |
+            cat /dev/null | sbt sonatypeRelease
+
 workflows:
   version: 2
   main:
     jobs:
-      - build
+      - build:
+          filters:
+            branches:
+              only: /.*/
+            tags:
+              only: /.*/
       - publish:
           requires:
             - build
           filters:
             branches:
               only: master
+            tags:
+              only: /.*/
+      - release:
+          requires:
+            - publish
+          filters:
+            branches:
+              ignore: /.*/
+            tags:
+              only: /^v.*/
