@@ -15,7 +15,12 @@ object AssemblySettings {
       assembly / assemblyJarName := s"${name.value}-${version.value}.sh",
       assembly / assemblyMergeStrategy := strategies(SisuNamed),
       assembly / assemblyOption := (assemblyOption in assembly).value
-        .copy(prependShellScript = Some(defaultShellScript))
+        .copy(prependShellScript = Some(defaultShellScript)),
+      Compile / assembly / artifact := {
+        val art = (Compile / assembly / artifact).value
+        art.withExtension("sh")
+      },
+      addArtifact(Compile / assembly / artifact, assembly)
     )
   )
 
@@ -23,11 +28,6 @@ object AssemblySettings {
     settings.get(name).map(_ ++ Common)
 
   lazy val Common = Seq(
-    Compile / assembly / artifact := {
-      val art = (Compile / assembly / artifact).value
-      art.withClassifier(Some("assembly"))
-    },
-    addArtifact(Compile / assembly / artifact, assembly),
     assembly / test := {}
   )
 
