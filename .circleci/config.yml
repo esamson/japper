@@ -4,8 +4,6 @@ jobs:
     docker:
       - image: circleci/openjdk:8-jdk
 
-    working_directory: ~/japper
-
     environment:
       TERM: dumb
 
@@ -16,7 +14,9 @@ jobs:
           - sbt-deps-{{ checksum "project/Dependencies.scala" }}-{{ checksum "project/plugins.sbt" }}-{{ checksum "project/build.properties" }}
           - sbt-deps-
 
-      - run: cat /dev/null | sbt test:compile
+      - run:
+          name: Compile
+          command: cat /dev/null | sbt test:compile
 
       - save_cache:
           paths:
@@ -25,21 +25,19 @@ jobs:
             - ~/.sbt/boot
           key: sbt-deps-{{ checksum "project/Dependencies.scala" }}-{{ checksum "project/plugins.sbt" }}-{{ checksum "project/build.properties" }}
 
-      - run: cat /dev/null | sbt test:test
+      - run:
+          name: Test
+          command: cat /dev/null | sbt test:test
 
   publish:
     docker:
       - image: circleci/openjdk:8-jdk
-
-    working_directory: ~/japper
 
     environment:
       TERM: dumb
 
     steps:
       - checkout
-      - attach_workspace:
-          at: ~/japper
       - restore_cache:
           keys:
             - sbt-deps-{{ checksum "project/Dependencies.scala" }}-{{ checksum "project/plugins.sbt" }}-{{ checksum "project/build.properties" }}
@@ -55,23 +53,18 @@ jobs:
     docker:
       - image: circleci/openjdk:8-jdk
 
-    working_directory: ~/japper
-
     environment:
       TERM: dumb
 
     steps:
       - checkout
-      - attach_workspace:
-          at: ~/japper
       - restore_cache:
           keys:
             - sbt-deps-{{ checksum "project/Dependencies.scala" }}-{{ checksum "project/plugins.sbt" }}-{{ checksum "project/build.properties" }}
             - sbt-deps-
       - run:
-          name: Publish
-          command: |
-            cat /dev/null | sbt sonatypeRelease
+          name: Release
+          command: cat /dev/null | sbt sonatypeRelease
 
 workflows:
   version: 2
