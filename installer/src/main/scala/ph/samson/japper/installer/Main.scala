@@ -24,7 +24,10 @@ import org.apache.maven.repository.internal.MavenRepositorySystemUtils
 import org.eclipse.aether.RepositorySystem
 import org.eclipse.aether.repository.LocalRepository
 import ph.samson.japper.core.Dirs.RepoDir
+import ph.samson.japper.core.Scripter.Script
 import ph.samson.japper.core.{Resolver, Scripter}
+
+import scala.sys.process._
 
 object Main extends StrictLogging {
 
@@ -39,18 +42,26 @@ object Main extends StrictLogging {
       artifacts <- Resolver.resolve("ph.samson.japper", "japper-app_2.12", None)
       mainArtifact = artifacts.head
       dependencies = artifacts.tail
-      script <- Scripter.bashScript(mainArtifact, dependencies)
+      Script(name, contents) <- Scripter.bashScript(mainArtifact, dependencies)
     } yield {
-      val name = mainArtifact.getArtifactId.stripSuffix("_2.12")
       val target = currentWorkingDirectory / name
-      target.write(script)
+      target.write(contents)
       target.addPermission(PosixFilePermission.OWNER_EXECUTE)
       target
     }
 
     launchScript match {
-      case Some(s) => logger.info(s"wrote launch script: $s")
-      case None    => logger.warn("Could not create launch script")
+      case Some(s) =>
+        logger.info(s"wrote launch script: $s")
+        val p = Process(s.toString(),
+                        Seq("install",
+                            "--group-id",
+                            "ph.samson.japper",
+                            "--artifact-id",
+                            "japper-app_2.12")).run().exitValue()
+        logger.info(s"installed: $p")
+        s.delete()
+      case None => logger.warn("Could not create launch script")
     }
   }
 

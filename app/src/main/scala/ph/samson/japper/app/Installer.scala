@@ -25,6 +25,7 @@ import org.apache.maven.repository.internal.MavenRepositorySystemUtils
 import org.eclipse.aether.RepositorySystem
 import org.eclipse.aether.repository.LocalRepository
 import ph.samson.japper.core.Dirs._
+import ph.samson.japper.core.Scripter.Script
 import ph.samson.japper.core.{Resolver, Scripter}
 
 object Installer extends StrictLogging {
@@ -39,15 +40,13 @@ object Installer extends StrictLogging {
       artifacts <- Resolver.resolve(groupId, artifactId, version)
       mainArtifact = artifacts.head
       dependencies = artifacts.tail
-      script <- Scripter.bashScript(mainArtifact, dependencies)
+      Script(name, contents) <- Scripter.bashScript(mainArtifact, dependencies)
     } yield {
-      val name = mainArtifact.getArtifactId.stripSuffix("_2.12")
-
       if (BinDir.notExists) {
         BinDir.createDirectories()
       }
       val target = BinDir / name
-      target.write(script)
+      target.write(contents)
       target.addPermission(PosixFilePermission.OWNER_EXECUTE)
       target
     }

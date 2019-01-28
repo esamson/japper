@@ -16,7 +16,7 @@
 
 package ph.samson.japper.core
 
-import java.util.jar.{Attributes, JarFile}
+import java.util.jar.{Attributes => JAttributes, JarFile}
 
 import com.typesafe.scalalogging.StrictLogging
 import org.eclipse.aether.artifact.Artifact
@@ -31,20 +31,29 @@ object Scripter extends StrictLogging {
     for {
       manifest <- Option(jarFile.getManifest)
       mainAttributes = manifest.getMainAttributes
-      mainClass <- Option(mainAttributes.getValue(Attributes.Name.MAIN_CLASS))
+      mainClass <- Option(mainAttributes.getValue(JAttributes.Name.MAIN_CLASS))
     } yield {
+      val name = Option(mainAttributes.getValue(Attributes.Name))
+        .getOrElse(artifact.getArtifactId.stripSuffix("_2.12"))
+
       logger.debug(s"main class: $mainClass")
 
       val classPath = (artifact +: dependencies)
         .map(_.getFile)
         .mkString(java.io.File.pathSeparator)
 
-      s"""|#!/bin/sh
-          |
-          |java -cp $classPath $mainClass "$$@"
-          |""".stripMargin
-
+      Script(
+        name,
+        s"""|#!/bin/sh
+            |
+            |java -cp $classPath $mainClass "$$@"
+            |""".stripMargin
+      )
     }
   }
 
+  final case class Script(
+      name: String,
+      contents: String
+  )
 }

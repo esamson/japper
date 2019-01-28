@@ -41,6 +41,10 @@ lazy val app = japperProject("app")
       slf4jSimple
     ).map(_ % Runtime),
   )
+  .settings(
+    Compile / packageBin / packageOptions +=
+      Package.ManifestAttributes("Japper-Name" -> "japper")
+  )
 
 lazy val core = japperProject("core").settings(
   libraryDependencies ++= Seq(
