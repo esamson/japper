@@ -16,6 +16,8 @@ jobs:
 
       - run:
           name: Compile
+          environment:
+            STRICT: true
           command: cat /dev/null | sbt test:compile
 
       - save_cache:
