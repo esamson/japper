@@ -11,8 +11,12 @@ jobs:
       - checkout
       - restore_cache:
           keys:
-          - sbt-deps-{{ checksum "project/Dependencies.scala" }}-{{ checksum "project/plugins.sbt" }}-{{ checksum "project/build.properties" }}
+          - sbt-deps-{{ checksum "project/Dependencies.scala" }}-{{ checksum "project/plugins.sbt" }}-{{ checksum "project/build.properties" }}-{{ checksum "project/bin/scalafmt" }}
           - sbt-deps-
+
+      - run:
+          name: Scalafmt
+          command: project/bin/scalafmt --test
 
       - run:
           name: Compile
@@ -25,7 +29,7 @@ jobs:
             - ~/.cache/coursier
             - ~/.ivy2/cache
             - ~/.sbt/boot
-          key: sbt-deps-{{ checksum "project/Dependencies.scala" }}-{{ checksum "project/plugins.sbt" }}-{{ checksum "project/build.properties" }}
+          key: sbt-deps-{{ checksum "project/Dependencies.scala" }}-{{ checksum "project/plugins.sbt" }}-{{ checksum "project/build.properties" }}-{{ checksum "project/bin/scalafmt" }}
 
       - run:
           name: Test
@@ -42,7 +46,7 @@ jobs:
       - checkout
       - restore_cache:
           keys:
-            - sbt-deps-{{ checksum "project/Dependencies.scala" }}-{{ checksum "project/plugins.sbt" }}-{{ checksum "project/build.properties" }}
+            - sbt-deps-{{ checksum "project/Dependencies.scala" }}-{{ checksum "project/plugins.sbt" }}-{{ checksum "project/build.properties" }}-{{ checksum "project/bin/scalafmt" }}
             - sbt-deps-
       - run:
           name: Publish
@@ -62,7 +66,7 @@ jobs:
       - checkout
       - restore_cache:
           keys:
-            - sbt-deps-{{ checksum "project/Dependencies.scala" }}-{{ checksum "project/plugins.sbt" }}-{{ checksum "project/build.properties" }}
+            - sbt-deps-{{ checksum "project/Dependencies.scala" }}-{{ checksum "project/plugins.sbt" }}-{{ checksum "project/build.properties" }}-{{ checksum "project/bin/scalafmt" }}
             - sbt-deps-
       - run:
           name: Release
