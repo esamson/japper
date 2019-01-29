@@ -4,5 +4,5 @@ object Attributes {
 
   private def attribute(name: String) = s"Japper-$name"
 
-  val Name = "Name"
+  val Name = attribute("Name")
 }
