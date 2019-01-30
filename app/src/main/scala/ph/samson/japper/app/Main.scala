@@ -17,14 +17,34 @@
 package ph.samson.japper.app
 
 import com.typesafe.scalalogging.StrictLogging
+import fs2.Stream
 
 object Main extends StrictLogging {
 
   def main(args: Array[String]): Unit = {
     logger.debug(s"main(${args.mkString(", ")})")
-    Command(args) match {
+
+    val command = Command(args)
+    val program = command match {
       case Install(groupId, artifactId, version) =>
         Installer.install(groupId, artifactId, version)
     }
+
+    val result = Stream
+      .eval(program)
+      .compile
+      .drain
+      .redeem(
+        err => {
+          logger.error(s"$command failed.", err)
+          -1
+        },
+        _ => {
+          0
+        }
+      )
+      .unsafeRunSync()
+
+    sys.exit(result)
   }
 }

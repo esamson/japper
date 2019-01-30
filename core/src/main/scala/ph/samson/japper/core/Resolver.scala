@@ -61,8 +61,8 @@ object Resolver extends StrictLogging {
     val req = new VersionRangeRequest()
       .addRepository(remoteRepo)
       .setArtifact(new DefaultArtifact(groupId, artifactId, "jar", "[,)"))
-    Option(
-      repoSystem.resolveVersionRange(session, req).getHighestVersion.toString)
+    Option(repoSystem.resolveVersionRange(session, req).getHighestVersion)
+      .map(_.toString)
   }
 
   private def doResolve(groupId: String, artifactId: String, version: String)(

@@ -20,9 +20,11 @@ import java.nio.file.attribute.PosixFilePermission
 
 import better.files.File
 import better.files.File._
+import cats.effect.IO
 import com.typesafe.scalalogging.StrictLogging
 import org.apache.maven.repository.internal.MavenRepositorySystemUtils
 import org.eclipse.aether.RepositorySystem
+import org.eclipse.aether.artifact.Artifact
 import org.eclipse.aether.repository.LocalRepository
 import ph.samson.japper.core.Dirs._
 import ph.samson.japper.core.Scripter.Script
@@ -30,17 +32,43 @@ import ph.samson.japper.core.{Resolver, Scripter}
 
 object Installer extends StrictLogging {
 
-  def install(groupId: String, artifactId: String, version: Option[String]) = {
+  def install(groupId: String, artifactId: String, version: Option[String]) =
+    for {
+      resolved <- resolve(groupId, artifactId, version)
+      script <- bashScript(resolved)
+      file <- writeScript(script)
+      link <- linkScript(file)
+    } yield {
+      link match {
+        case Some(s) =>
+          logger.debug(s"wrote launch script: $s")
+        case None =>
+          logger.warn("Could not create launch script")
+      }
+    }
 
+  private def resolve(groupId: String,
+                      artifactId: String,
+                      version: Option[String]) = IO {
     implicit val repoSystem = Resolver.newRepositorySystem()
     implicit val session = newSession(repoSystem)
     implicit val remoteRepo = Resolver.MavenCentral
 
-    val launchScript = for {
-      artifacts <- Resolver.resolve(groupId, artifactId, version)
-      mainArtifact = artifacts.head
-      dependencies = artifacts.tail
-      Script(name, contents) <- Scripter.bashScript(mainArtifact, dependencies)
+    Resolver.resolve(groupId, artifactId, version)
+  }
+
+  private def bashScript(artifacts: Option[List[Artifact]]) = IO {
+    for {
+      all <- artifacts
+      main <- all.headOption
+      deps = all.tail
+      script <- Scripter.bashScript(main, deps)
+    } yield script
+  }
+
+  private def writeScript(script: Option[Script]) = IO {
+    for {
+      Script(name, contents) <- script
     } yield {
       if (BinDir.notExists) {
         BinDir.createDirectories()
@@ -50,44 +78,41 @@ object Installer extends StrictLogging {
       target.addPermission(PosixFilePermission.OWNER_EXECUTE)
       target
     }
-
-    launchScript match {
-      case Some(s) =>
-        logger.debug(s"wrote launch script: $s")
-        linkScript(s)
-      case None => logger.warn("Could not create launch script")
-    }
-
   }
 
-  private def linkScript(script: File): Unit = {
-    val targetDir = home / ".local" / "bin"
-    if (targetDir.notExists) {
-      targetDir.createDirectories()
-    }
-
-    val link = targetDir / script.name
-    if (link.notExists) {
-      link.symbolicLinkTo(script)
-      logger.info(s"Installed to $link")
-    } else {
-      if (link.isSymbolicLink) {
-        val real = link.path.toRealPath()
-        if (real.isSameFileAs(script)) {
-          logger.info(s"Updated $link")
-        } else {
-          logger.warn(
-            s"Cannot update $link because it refers to unmanaged path $real")
+  private def linkScript(source: Option[File]) =
+    IO {
+      for (script <- source) yield {
+        val targetDir = home / ".local" / "bin"
+        if (targetDir.notExists) {
+          targetDir.createDirectories()
         }
-      } else {
-        logger.warn(s"Cannot update unmanaged path $link")
+
+        val link = targetDir / script.name
+        if (link.notExists) {
+          link.symbolicLinkTo(script)
+          logger.info(s"Installed to $link")
+        } else {
+          if (link.isSymbolicLink) {
+            val real = link.path.toRealPath()
+            if (real.isSameFileAs(script)) {
+              logger.info(s"Updated $link")
+            } else {
+              logger.warn(
+                s"Cannot update $link because it refers to unmanaged path $real")
+            }
+          } else {
+            logger.warn(s"Cannot update unmanaged path $link")
+          }
+        }
+
+        if (!sys.env.getOrElse("PATH", "").contains(targetDir.toString())) {
+          logger.warn(s"Add $targetDir to your environment PATH.")
+        }
+
+        link
       }
     }
-
-    if (!sys.env.getOrElse("PATH", "").contains(targetDir.toString())) {
-      logger.warn(s"Add $targetDir to your environment PATH.")
-    }
-  }
 
   private def newSession(system: RepositorySystem) = {
     val session = MavenRepositorySystemUtils.newSession()

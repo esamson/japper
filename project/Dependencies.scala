@@ -4,6 +4,9 @@ object Dependencies {
 
   val betterFiles = "com.github.pathikrit" %% "better-files" % "3.7.0"
 
+  val fs2Version = "1.0.3"
+  val fs2Core = "co.fs2" %% "fs2-core" % fs2Version
+
   val resolverVersion = "1.3.1"
   val mavenResolverConnectorBasic = "org.apache.maven.resolver" % "maven-resolver-connector-basic" % resolverVersion
   val mavenResolverTransportFile = "org.apache.maven.resolver" % "maven-resolver-transport-file" % resolverVersion

@@ -35,6 +35,7 @@ lazy val app = japperProject("app")
   .dependsOn(core)
   .settings(
     libraryDependencies ++= Seq(
+      fs2Core,
       scallop
     ),
     libraryDependencies ++= Seq(
