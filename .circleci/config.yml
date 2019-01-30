@@ -19,10 +19,14 @@ jobs:
           command: project/bin/scalafmt --test
 
       - run:
+          name: Header check
+          command: cat /dev/null | sbt headerCheck
+
+      - run:
           name: Compile
           environment:
             STRICT: true
-          command: cat /dev/null | sbt headerCheck test:compile
+          command: cat /dev/null | sbt test:compile
 
       - save_cache:
           paths:
