@@ -16,10 +16,17 @@
 
 package ph.samson.japper.core
 
+import better.files.File
 import better.files.File._
 
 object Dirs {
-  val HomeDir = home / ".local" / "share" / "japper"
-  val BinDir = HomeDir / "bin"
-  val RepoDir = HomeDir / "repo"
+
+  val XdgDataHome: File = sys.env
+    .get("XDG_DATA_HOME")
+    .map(d => File(d))
+    .getOrElse(home / ".local" / "share")
+
+  val JapperHome: File = XdgDataHome / "japper"
+  val BinDir: File = JapperHome / "bin"
+  val RepoDir: File = JapperHome / "repo"
 }
