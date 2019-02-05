@@ -39,6 +39,17 @@ jobs:
           name: Test
           command: cat /dev/null | sbt test:test
 
+      - run:
+          name: Save test results
+          command: |
+            mkdir -p ~/scalatest/
+            find . -type f -regex ".*/target/test-reports/.*xml" -exec cp {} ~/scalatest/ \;
+          when: always
+      - store_test_results:
+          path: ~/scalatest
+      - store_artifacts:
+          path: ~/scalatest
+
   publish:
     docker:
       - image: circleci/openjdk:8-jdk
