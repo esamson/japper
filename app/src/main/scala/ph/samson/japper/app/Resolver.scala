@@ -10,7 +10,7 @@ trait Resolver[F[_]] {
 
   def resolve(groupId: String,
               artifactId: String,
-              version: Version): F[Option[Resolution]]
+              version: Version): F[Option[Application]]
 }
 
 object Resolver {
@@ -24,5 +24,5 @@ object Resolver {
                             version: Version,
                             file: File)
 
-  final case class Resolution(artifact: Artifact, dependencies: List[Artifact])
+  final case class Application(main: Artifact, dependencies: List[Artifact])
 }
