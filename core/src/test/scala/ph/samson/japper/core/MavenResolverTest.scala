@@ -8,14 +8,14 @@ import org.scalatest.{Matchers, Outcome, fixture}
 
 import scala.util.Try
 
-class ResolverTest extends fixture.FlatSpec with Matchers {
+class MavenResolverTest extends fixture.FlatSpec with Matchers {
 
   case class FixtureParam(repoSystem: RepositorySystem,
                           session: RepositorySystemSession,
                           remoteRepo: RemoteRepository)
 
   override def withFixture(test: OneArgTest): Outcome = {
-    val repoSystem = Resolver.newRepositorySystem()
+    val repoSystem = MavenResolver.newRepositorySystem()
     val session = {
       val repoDir = File.newTemporaryDirectory(
         "repo",
@@ -30,20 +30,22 @@ class ResolverTest extends fixture.FlatSpec with Matchers {
     }
     withFixture(
       test.toNoArgTest(
-        FixtureParam(repoSystem, session, Resolver.MavenCentral)))
+        FixtureParam(repoSystem, session, MavenResolver.MavenCentral)))
   }
 
   behavior of "ResolverTest"
 
   it should "resolve" in { fixtureParam =>
     implicit val FixtureParam(r, s, c) = fixtureParam
-    Resolver.resolve("com.google.googlejavaformat", "google-java-format", None)
+    MavenResolver.resolve("com.google.googlejavaformat",
+                          "google-java-format",
+                          None)
   }
 
   it should "not resolve" in { fixtureParam =>
     implicit val FixtureParam(r, s, c) = fixtureParam
     val resolved =
-      Try(Resolver.resolve("com.example.bad", "no-such-thing", Some("1")))
+      Try(MavenResolver.resolve("com.example.bad", "no-such-thing", Some("1")))
     println(s"resolved: $resolved")
   }
 }

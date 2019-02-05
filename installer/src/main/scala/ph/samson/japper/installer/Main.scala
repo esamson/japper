@@ -25,7 +25,7 @@ import org.eclipse.aether.RepositorySystem
 import org.eclipse.aether.repository.LocalRepository
 import ph.samson.japper.core.Dirs.RepoDir
 import ph.samson.japper.core.Scripter.Script
-import ph.samson.japper.core.{Resolver, Scripter}
+import ph.samson.japper.core.{MavenResolver, Scripter}
 
 import scala.sys.process._
 
@@ -34,12 +34,14 @@ object Main extends StrictLogging {
   def main(args: Array[String]): Unit = {
     logger.debug(s"main(${args.mkString(", ")})")
 
-    implicit val repoSystem = Resolver.newRepositorySystem()
+    implicit val repoSystem = MavenResolver.newRepositorySystem()
     implicit val session = newSession(repoSystem)
-    implicit val remoteRepo = Resolver.MavenCentral
+    implicit val remoteRepo = MavenResolver.MavenCentral
 
     val launchScript = for {
-      artifacts <- Resolver.resolve("ph.samson.japper", "japper-app_2.12", None)
+      artifacts <- MavenResolver.resolve("ph.samson.japper",
+                                         "japper-app_2.12",
+                                         None)
       mainArtifact = artifacts.head
       dependencies = artifacts.tail
       Script(name, contents) <- Scripter.bashScript(mainArtifact, dependencies)

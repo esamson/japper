@@ -36,7 +36,7 @@ import scala.collection.JavaConverters._
 /**
   * TODO: Document Resolver
   */
-object Resolver extends StrictLogging {
+object MavenResolver extends StrictLogging {
 
   def resolve(groupId: String, artifactId: String, version: Option[String])(
       implicit repoSystem: RepositorySystem,

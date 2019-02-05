@@ -28,7 +28,7 @@ import org.eclipse.aether.artifact.Artifact
 import org.eclipse.aether.repository.LocalRepository
 import ph.samson.japper.core.Dirs._
 import ph.samson.japper.core.Scripter.Script
-import ph.samson.japper.core.{Resolver, Scripter}
+import ph.samson.japper.core.{MavenResolver, Scripter}
 
 object Installer extends StrictLogging {
 
@@ -50,11 +50,11 @@ object Installer extends StrictLogging {
   private def resolve(groupId: String,
                       artifactId: String,
                       version: Option[String]) = IO {
-    implicit val repoSystem = Resolver.newRepositorySystem()
+    implicit val repoSystem = MavenResolver.newRepositorySystem()
     implicit val session = newSession(repoSystem)
-    implicit val remoteRepo = Resolver.MavenCentral
+    implicit val remoteRepo = MavenResolver.MavenCentral
 
-    Resolver.resolve(groupId, artifactId, version)
+    MavenResolver.resolve(groupId, artifactId, version)
   }
 
   private def bashScript(artifacts: Option[List[Artifact]]) = IO {
