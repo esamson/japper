@@ -2,6 +2,7 @@ import sbt._
 import sbt.Keys._
 import sbtassembly.AssemblyPlugin
 import de.heikoseeberger.sbtheader.HeaderPlugin.autoImport._
+import scalafix.sbt.ScalafixPlugin.autoImport._
 
 /**
   * Base project settings
@@ -75,6 +76,7 @@ object Base {
       "-Xlint:unsound-match", // Pattern match may not be typesafe.
       "-Yno-adapted-args", // Do not adapt an argument list (either by inserting () or creating a tuple) to match the receiver.
       "-Ypartial-unification", // Enable partial unification in type constructor inference
+      "-Yrangepos", // Required by SemanticDB compiler plugin
       "-Ywarn-dead-code", // Warn when dead code is identified.
       "-Ywarn-extra-implicit", // Warn when more than one implicit parameter section is defined.
       "-Ywarn-inaccessible", // Warn about inaccessible types in method signatures.
@@ -119,7 +121,8 @@ object Base {
     Test / logBuffered := false,
     Test / fork := true,
     Test / parallelExecution := true,
-    headerLicense := Some(GplV3Only)
+    headerLicense := Some(GplV3Only),
+    addCompilerPlugin(scalafixSemanticdb)
   )
 
   lazy val GplV3Only = HeaderLicense.Custom(

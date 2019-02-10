@@ -25,6 +25,9 @@ ThisBuild / scmInfo := Some(
 
 ThisBuild / dynverSonatypeSnapshots := true
 
+addCommandAlias("fixCheck",
+                "; compile:scalafix --check ; test:scalafix --check")
+
 // Root project
 name := "japper"
 disablePlugins(AssemblyPlugin)

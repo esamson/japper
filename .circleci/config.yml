@@ -19,6 +19,10 @@ jobs:
           command: project/bin/scalafmt --test
 
       - run:
+          name: Scalafix
+          command: cat /dev/null | sbt fixCheck
+
+      - run:
           name: Header check
           command: cat /dev/null | sbt headerCheck
 
